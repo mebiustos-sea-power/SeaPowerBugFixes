@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFrameworks>net10.0;netstandard2.1</TargetFrameworks>
+    <OutputType>Exe</OutputType>
+    <AssemblyName>MebiusTosBugFixes.Tests</AssemblyName>
+    <FindDependenciesOfExternallyResolvedReferences>false</FindDependenciesOfExternallyResolvedReferences>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\src\MebiusTosBugFixes.csproj" />
+    <Reference Include="0Harmony" HintPath="$(SeaPowerDir)\BepInEx\core\0Harmony.dll" Private="false" ExternallyResolved="true" />
+    <Reference Include="Seapower-Scripts" HintPath="$(SeaPowerDir)\Sea Power_Data\Managed\Seapower-Scripts.dll" Private="false" ExternallyResolved="true" />
+    <Reference Include="Noesis.NoesisGUI" HintPath="$(SeaPowerDir)\Sea Power_Data\Managed\Noesis.NoesisGUI.dll" Private="false" ExternallyResolved="true" />
+    <Reference Include="UnityEngine.CoreModule" HintPath="$(SeaPowerDir)\Sea Power_Data\Managed\UnityEngine.CoreModule.dll" Private="false" ExternallyResolved="true" />
+  </ItemGroup>
+</Project>

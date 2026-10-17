@@ -1,0 +1,4 @@
+# Copy to fixes.ini in this mod's folder to disable individual fixes.
+# Missing entries are enabled. Changes take effect after restarting Sea Power.
+[Fixes]
+WorldViewWindowHost = true
