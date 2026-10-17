@@ -1,78 +1,80 @@
 # Bug Fixes by MebiusTos
 
-Sea Powerの不具合修正集です。Anchor Chain経由で読み込みます。現在のバージョンは0.1.1です。
+A collection of bug fixes for Sea Power, loaded through Anchor Chain. Current version: **0.1.1**.
 
-## 導入
+## Installation
 
-1. Anchor Chainと、その動作に必要なBepInExを導入します。
-2. ゲーム終了後、`dist/MebiusTosBugFixes` をゲームの `Sea Power_Data/StreamingAssets/` に配置します。
-3. ゲームのMOD一覧で **Anchor Chain** と **Bug Fixes by MebiusTos** を有効にし、ゲームを再起動します。
+1. Install Anchor Chain and the BepInEx setup it requires.
+2. Close Sea Power. Extract the release ZIP and copy the enclosed `MebiusTosBugFixes` folder into the game's `Sea Power_Data/StreamingAssets/` directory. If you build from source, use `dist/MebiusTosBugFixes`.
+3. Enable **Anchor Chain** and **Bug Fixes by MebiusTos** in the game's mod manager, then restart Sea Power.
 
-MOD識別子は `mebiustos.seapower.bugfixes`、フォルダ名は `MebiusTosBugFixes` です。元のゲームDLLとUIアセットは書き換えません。
+To disable the mod, uncheck it in the mod manager and restart the game. To uninstall it, close the game and move `Sea Power_Data/StreamingAssets/MebiusTosBugFixes` outside the game directory.
 
-## 修正内容
+The plugin ID is `mebiustos.seapower.bugfixes`, and the package folder is `MebiusTosBugFixes`. The mod does not modify the original game DLL or UI assets.
+
+## Included fixes
 
 ### WorldViewWindowHost
 
-Escのポーズメニューを開いて閉じた後、全画面マップからワールドビューを開いても小窓が表示されなくなる問題を修正します。
+Fixes the world-view window failing to appear when opened from the full-screen map after opening and closing the Esc pause menu.
 
-ゲームの `WindowHost` は生成時に共有の `WindowHostManager.CurrentHost` を更新します。ポーズメニューを閉じてもこの共有参照は戦闘画面へ戻りません。ゲームの `MainGameViewModel.SyncWorldViewWindow()` はこの共有先へ小窓を追加するため、非表示のポーズメニュー側へ追加される経路があります。
+The game updates the shared `WindowHostManager.CurrentHost` reference whenever it creates a `WindowHost`. Closing the pause menu does not restore that reference to the battle view. Because `MainGameViewModel.SyncWorldViewWindow()` uses the shared reference, it can add the world-view window to the hidden pause menu instead of the visible battle view.
 
-この修正は、そのメソッドの登録先の取得だけを、戦闘画面自身に付いた `WindowHost` の取得へ置き換えます。共有の `CurrentHost` は変更しません。表示条件、専用モニターへの出力判定、既存ウィンドウの順序、開閉コマンドの処理はゲーム本体の処理を使います。戦闘画面のホストは画面ごとに記憶し、画面が作り直されたら取得し直します。
+This fix replaces only the method's host lookup with the `WindowHost` attached to the battle view itself. The game still handles visibility, dedicated-monitor output, window ordering, and open/close commands. The shared `CurrentHost` reference is left unchanged. Hosts are cached per battle view and rediscovered when its root is replaced.
 
-なお、現在のゲームの「ワールドビュー：開く／閉じる」というメニュー文言は、内部では開状態／閉状態の表示です。このMODでは文言を変更しません。
+The game's world-view menu label reports the current open/closed state. This mod does not change that text.
 
-未修正の状態での再現手順は次のとおりです。
+To reproduce the original issue with this mod disabled:
 
-1. ワールドビュー専用モニターを「なし」に設定します。
-2. 新しい戦闘を開始し、ワールドビューの小窓をまだ開かずに進めます。
-3. Escでポーズメニューを開き、ゲームへ戻ります。
-4. マップを全画面にし、マップのメニューでワールドビューを切り替えます。
+1. Set the dedicated world-view monitor to **None**.
+2. Start a new battle without opening the world-view window first.
+3. Open the pause menu with Esc, then return to the battle.
+4. Switch the map to full screen and toggle the world view from the map menu.
 
-メニューの表示だけが切り替わり、小窓の枠やタイトルバーが表示されないことが対象の症状です。比較用に、別の新しい戦闘ではEscを開く前に同じ操作を試してください。既に小窓を表示した戦闘ではウィンドウの登録状態が異なるため、新しい戦闘から確認します。
+The reported symptom is that the menu state changes but no window frame or title bar appears. As a comparison, start another new battle and try the same operation before opening the Esc menu. Use a fresh battle for each comparison: a window that was already displayed may have a different registration state.
 
-## 修正ごとの無効化
+## Disabling individual fixes
 
-MODフォルダ内の `fixes.ini.example` を `fixes.ini` にコピーし、停止する修正を `false` にします。
+Copy `fixes.ini.example` to `fixes.ini` inside the installed mod folder, then set a fix to `false` to disable it:
 
 ```ini
 [Fixes]
 WorldViewWindowHost = false
 ```
 
-`fixes.ini` がない場合と、設定が省略された修正は有効です。反映にはゲームの再起動が必要です。未知の修正名、重複指定、真偽値以外の値は設定エラーとしてログに記録し、初期化を停止します。入力ファイルは書き換えません。
+All fixes are enabled when `fixes.ini` is absent. A fix omitted from the file is also enabled. Restart the game after changing these settings.
 
-ゲームのMOD一覧でパッケージ自体を無効にした場合は、個別設定に関係なく修正を適用しません。
+Unknown fix IDs, duplicate entries, and invalid Boolean values are logged as configuration errors and stop initialization. The input file is not overwritten.
 
-## 構成と拡張
+Disabling the package in the game's mod manager prevents all of its fixes from being installed, regardless of the individual settings.
 
-- `src/Plugin.cs`：Anchor Chainからの起動、パッケージ有効状態と設定の読み込み。
-- `src/BugFixes.cs`：修正モジュールごとの適用と適用失敗時の解除。パッチ識別子も修正ごとに分けます。
-- `src/Fixes/WorldView/`：ワールドビュー固有のパッチ、戦闘画面のホスト取得とキャッシュ。
-- `tests/`：設定、有効状態、画面の所有関係、実ゲームDLLの処理に対する回帰検証。
-- `assets/workshop/workshop_icon.jpg`：Steamワークショップ用のアイコン画像。提供されたJPEGをそのまま管理します。
+## Project structure and extension
 
-新しいバグ修正は独立した `IBugFix` として追加し、`Plugin` の修正一覧へ登録します。ある修正の適用失敗はログへ記録してその修正を解除し、ほかの修正の適用を続けます。このMODの例外はAnchor Chain、ほかのMODのHarmony呼び出し、ゲームの更新ループへ伝播させません。
+- `src/Plugin.cs`: Anchor Chain entry point, package activation check, and configuration loading.
+- `src/BugFixes.cs`: installation and rollback for individual fix modules, each with its own Harmony owner ID.
+- `src/Fixes/WorldView/`: the world-view patch, battle-owned host lookup, and host cache.
+- `tests/`: regression checks for settings, activation, host ownership, and the installed game's method instructions.
+- `assets/workshop/workshop_icon.jpg`: the Steam Workshop icon, preserved as the supplied JPEG without recompression.
 
-対象メソッドの構造が変わった場合は、互換性エラーを記録し、渡された命令列を変更せず返します。初回適用時はその修正を解除します。ほかのMODによる後日のメソッド再構築中にも例外を外へ投げません。戦闘画面のホストが取得できない場合は原因を記録し、その回のワールドビュー同期をスキップします。共有先への代替登録は行いません。同じ失敗のログは抑制し、画面の再生成やホストの復旧後は再取得できます。ログ出力自体の失敗も呼び出し元へ伝播させません。
+Add future fixes as independent `IBugFix` implementations and register them in `Plugin`. If a fix fails to install, the framework logs the error, removes that fix's patches, and continues with the other fixes.
 
-## ビルドと検証
+Exceptions from initialization, patch generation, runtime host discovery, and logging are contained within this mod instead of propagating to Anchor Chain, another mod's Harmony call, or the game's update loop.
 
-Windows用.NET SDKを使用します。`Directory.Build.local.props.example` を `Directory.Build.local.props` にコピーし、ゲームとAnchor Chainの配置先を指定します。NuGetのダウンロードは不要です。
+If the target method has an unsupported layout, the transpiler logs a compatibility error and returns the incoming instructions unchanged. An unsuccessful initial installation is rolled back. This exception boundary also applies when another mod later triggers a Harmony rebuild.
+
+If the battle host cannot be resolved, the error is logged and that world-view synchronization is skipped. The fix does not register the window in an unrelated shared host. Repeated reports of the same failure are suppressed, and discovery can recover when the host becomes available or the UI root is replaced. Logging failures are also contained.
+
+## Building and verification
+
+Use the Windows .NET SDK. The test runner targets .NET 10, and the plugin targets .NET Standard 2.1. Copy `Directory.Build.local.props.example` to `Directory.Build.local.props` and set the game and Anchor Chain paths. No NuGet downloads are required.
 
 ```powershell
 .\build.ps1 -Test
 .\build.ps1 -Test -InstallLocal
 ```
 
-`-Test` は設定・所有関係と実ゲームDLLの命令列に対する回帰検証を.NETで実行し、ゲーム同梱のMonoでも同じ検証とHarmonyによる実メソッドへのパッチ適用・解除を確認します。導入済みHarmonyのパッチ実行基盤はゲームのMono用です。Monoはゲーム本体とは別のPowerShellプロセス内で起動し、実行中のゲームへ接続しません。
+`-Test` runs configuration, ownership, and game-method regression checks on .NET. It also invokes a separate process using the game's bundled Mono runtime to run those checks and verify Harmony patch installation and removal against the actual game method. The installed Harmony patching backend is intended for the game's Mono runtime. This separate process does not attach to a running game.
 
-回帰検証では、導入済みゲームDLLから `SyncWorldViewWindow()` の実際の命令列を読みます。ウィンドウとコマンドの境界を管理オブジェクトへ差し替えて実行し、元の処理がポーズメニュー側へ登録することと、パッチ後は戦闘画面側へ登録することを比較します。元のアルゴリズムをテスト用に複製しません。
+The regression fixture reads the actual instructions of `SyncWorldViewWindow()` from the installed game DLL. It substitutes managed window and command boundaries, then compares the original method's registration in the pause-menu host with the patched method's registration in the battle host. The game's algorithm is not copied into the tests.
 
-この検証はUnity/Noesisの実描画を初期化しません。ゲーム内では、専用モニターが「なし」の状態で、Escを開く前と開いて閉じた後の両方で小窓が開閉できること、繰り返しても小窓が増えないこと、別モニター出力を有効にした際の動作を確認してください。
-
-## ログと取り外し
-
-`BepInEx/LogOutput.log` への通常ログは、ゲーム起動時の適用結果（修正ごとの適用成功・無効状態）だけです。戦闘開始、戦闘画面の再生成、ワールドビューの開閉・操作では通常ログを出しません。プレイ中は互換性エラーやホスト取得失敗などのエラーだけを記録します。`WorldViewWindowHost: installed.` はパッチの適用成功を表し、描画確認を意味するものではありません。
-
-無効化はゲームのMOD一覧のチェックを外して再起動します。取り外す場合はゲーム終了後に `StreamingAssets/MebiusTosBugFixes` をゲーム外へ移動します。
+These checks do not initialize Unity or Noesis rendering. In-game verification should cover opening and closing the window both before and after using the Esc menu, repeated toggles without duplicate windows, and dedicated-monitor output. Actual rendering and dedicated-monitor behavior remain unverified by the automated checks.
