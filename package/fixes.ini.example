@@ -2,3 +2,4 @@
 # Missing entries are enabled. Changes take effect after restarting Sea Power.
 [Fixes]
 WorldViewWindowHost = true
+FormationUnitReselection = true

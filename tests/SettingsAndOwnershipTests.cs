@@ -62,7 +62,7 @@ internal static class SettingsAndOwnershipTests
     {
         string directory = Path.Combine(Path.GetTempPath(), "MebiusTosBugFixes-settings-" + Guid.NewGuid().ToString("N"));
         string path = Path.Combine(directory, "fixes.ini");
-        string[] ids = { "WorldViewWindowHost", "FutureFixFixture" };
+        string[] ids = { "WorldViewWindowHost", "FormationUnitReselection" };
         Require(FixSettings.Load(path, ids).IsEnabled(ids[0]) && !Directory.Exists(directory),
             "Absent optional settings should enable fixes without creating a file.");
         Directory.CreateDirectory(directory);

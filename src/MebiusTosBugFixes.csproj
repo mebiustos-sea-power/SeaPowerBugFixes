@@ -3,8 +3,8 @@
     <TargetFramework>netstandard2.1</TargetFramework>
     <AssemblyName>MebiusTosBugFixes</AssemblyName>
     <RootNamespace>MebiusTosBugFixes</RootNamespace>
-    <Version>0.1.1</Version>
-    <AssemblyVersion>0.1.1.0</AssemblyVersion>
+    <Version>0.1.2</Version>
+    <AssemblyVersion>0.1.2.0</AssemblyVersion>
     <FindDependenciesOfExternallyResolvedReferences>false</FindDependenciesOfExternallyResolvedReferences>
   </PropertyGroup>
   <ItemGroup>
@@ -12,6 +12,7 @@
     <Reference Include="BepInEx" HintPath="$(SeaPowerDir)\BepInEx\core\BepInEx.dll" Private="false" ExternallyResolved="true" />
     <Reference Include="0Harmony" HintPath="$(SeaPowerDir)\BepInEx\core\0Harmony.dll" Private="false" ExternallyResolved="true" />
     <Reference Include="Seapower-Scripts" HintPath="$(SeaPowerDir)\Sea Power_Data\Managed\Seapower-Scripts.dll" Private="false" ExternallyResolved="true" />
+    <Reference Include="UniRx" HintPath="$(SeaPowerDir)\Sea Power_Data\Managed\UniRx.dll" Private="false" ExternallyResolved="true" />
     <Reference Include="Noesis.NoesisGUI" HintPath="$(SeaPowerDir)\Sea Power_Data\Managed\Noesis.NoesisGUI.dll" Private="false" ExternallyResolved="true" />
     <Reference Include="UnityEngine.CoreModule" HintPath="$(SeaPowerDir)\Sea Power_Data\Managed\UnityEngine.CoreModule.dll" Private="false" ExternallyResolved="true" />
   </ItemGroup>
