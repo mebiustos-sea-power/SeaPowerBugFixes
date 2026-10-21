@@ -100,5 +100,10 @@ internal static class InstructionReader
         return records.Select(record => record.Instruction).ToList();
     }
 
+    // The installed Harmony was built against Mono's mscorlib Label, which the
+    // netstandard reference facade cannot expose directly. Read through IList
+    // so the test IL emitter can map the original labels to its own labels.
+    internal static IList Labels(CodeInstruction instruction) => Metadata(instruction, "labels");
+
     private static IList Metadata(CodeInstruction instruction, string name) => (IList)typeof(CodeInstruction).GetField(name)!.GetValue(instruction)!;
 }

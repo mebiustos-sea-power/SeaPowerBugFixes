@@ -2,7 +2,6 @@ using System;
 using System.IO;
 using System.Linq;
 using AnchorChain;
-using MebiusTosBugFixes.Fixes.WorldView;
 using MebiusTosBugFixes.Fixes.Selection;
 
 namespace MebiusTosBugFixes;
@@ -26,8 +25,9 @@ public sealed class Plugin : IAnchorChainMod
             if (!ModActivation.IsEnabled(game.GetType("SeaPower.FileManager", true)!, package))
             { ModLog.Info("Disabled in the mod manager; no fixes installed."); return; }
 
-            IBugFix[] fixes = { new WorldViewWindowHostFix(), new FormationUnitReselectionFix() };
+            IBugFix[] fixes = { new FormationUnitReselectionFix() };
             var settings = FixSettings.Load(Path.Combine(package, "fixes.ini"), fixes.Select(f => f.Id));
+            foreach (string warning in settings.Warnings) ModLog.Warning(warning);
             BugFixes.Install(fixes, settings);
         }
         catch (Exception error)

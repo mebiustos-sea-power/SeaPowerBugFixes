@@ -8,6 +8,7 @@ internal static class ModLog
 {
     private static ManualLogSource? source;
     internal static void Info(string message) => Write(LogLevel.Info, () => message);
+    internal static void Warning(string message) => Write(LogLevel.Warning, () => message);
     internal static void Error(string context, Exception error) => Write(LogLevel.Error, () => context + ": " + error);
 
     private static void Write(LogLevel level, Func<string> message)

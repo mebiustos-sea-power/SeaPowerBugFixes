@@ -1,6 +1,6 @@
 # Bug Fixes by MebiusTos
 
-A collection of bug fixes for Sea Power, loaded through Anchor Chain. Current version: **0.1.2**.
+A collection of bug fixes for Sea Power, loaded through Anchor Chain. Current version: **0.1.3**.
 
 [Source code](https://github.com/mebiustos-sea-power/SeaPowerBugFixes) · [Report an issue](https://github.com/mebiustos-sea-power/SeaPowerBugFixes/issues) · [Steam Workshop](https://steamcommunity.com/sharedfiles/filedetails/?id=3821735974)
 
@@ -16,25 +16,6 @@ The plugin ID is `mebiustos.seapower.bugfixes`, and the package folder is `Mebiu
 
 ## Included fixes
 
-### WorldViewWindowHost
-
-Fixes the world-view window failing to appear when opened from the full-screen map after opening and closing the Esc pause menu.
-
-The game updates the shared `WindowHostManager.CurrentHost` reference whenever it creates a `WindowHost`. Closing the pause menu does not restore that reference to the battle view. Because `MainGameViewModel.SyncWorldViewWindow()` uses the shared reference, it can add the world-view window to the hidden pause menu instead of the visible battle view.
-
-This fix replaces only the method's host lookup with the `WindowHost` attached to the battle view itself. The game still handles visibility, dedicated-monitor output, window ordering, and open/close commands. The shared `CurrentHost` reference is left unchanged. Hosts are cached per battle view and rediscovered when its root is replaced.
-
-The game's world-view menu label reports the current open/closed state. This mod does not change that text.
-
-To reproduce the original issue with this mod disabled:
-
-1. Set the dedicated world-view monitor to **None**.
-2. Start a new battle without opening the world-view window first.
-3. Open the pause menu with Esc, then return to the battle.
-4. Switch the map to full screen and toggle the world view from the map menu.
-
-The reported symptom is that the menu state changes but no window frame or title bar appears. As a comparison, start another new battle and try the same operation before opening the Esc menu. Use a fresh battle for each comparison: a window that was already displayed may have a different registration state.
-
 ### FormationUnitReselection
 
 Fixes the formation manager failing to reselect the same friendly unit after an unidentified contact is selected on the map. The bottom panel can remain on the contact even though the formation manager and camera still point to the friendly unit. Selecting another friendly unit first works around the original issue.
@@ -49,17 +30,16 @@ To reproduce the original issue with this fix disabled, select a friendly ship, 
 
 All fixes are enabled by default and can be disabled independently. In the installed mod folder (the folder containing `MebiusTosBugFixes.dll`), copy `fixes.ini.example` to `fixes.ini` and set the fix you want to disable to `false`.
 
-For example, this configuration disables the world-view fix while keeping the formation-manager fix enabled:
+For example, this configuration disables the formation-manager fix:
 
 ```ini
 [Fixes]
-WorldViewWindowHost = false
-FormationUnitReselection = true
+FormationUnitReselection = false
 ```
 
 Set a fix back to `true` to re-enable it. If `fixes.ini` is absent, all fixes are enabled; omitted entries are also enabled. **Restart Sea Power after changing these settings.** Preserve your `fixes.ini` when updating the mod.
 
-Unknown fix IDs, duplicate entries, and invalid Boolean values are logged as configuration errors and stop initialization. The input file is not overwritten.
+Unknown fix IDs and invalid Boolean values produce a warning at startup, and the affected entries are ignored. This includes settings left behind by removed fixes. Ignoring an invalid value preserves the fix's default (enabled) or its previous valid value in the file; other fixes continue loading. Duplicate valid entries for a known fix and malformed configuration syntax are logged as configuration errors and stop initialization. The input file is not overwritten.
 
 Disabling the package in the game's mod manager prevents all of its fixes from being installed, regardless of the individual settings.
 
@@ -67,18 +47,13 @@ Disabling the package in the game's mod manager prevents all of its fixes from b
 
 - `src/Plugin.cs`: Anchor Chain entry point, package activation check, and configuration loading.
 - `src/BugFixes.cs`: installation and rollback for individual fix modules, each with its own Harmony owner ID.
-- `src/Fixes/WorldView/`: the world-view patch, battle-owned host lookup, and host cache.
 - `src/Fixes/Selection/`: formation-command selection synchronization and contained command forwarding.
-- `tests/`: regression checks for settings, activation, host ownership, and the installed game's method instructions.
+- `tests/`: regression checks for settings, activation, selection, and the installed game's method instructions.
 - `assets/workshop/workshop_icon.jpg`: the Steam Workshop icon, preserved as the supplied JPEG without recompression.
 
 Add future fixes as independent `IBugFix` implementations and register them in `Plugin`. If a fix fails to install, the framework logs the error, removes that fix's patches, and continues with the other fixes.
 
-Exceptions from initialization, patch generation, runtime host discovery, selection-command synchronization, and logging are contained within this mod instead of propagating to Anchor Chain, another mod's Harmony call, or the game's update loop.
-
-If the target method has an unsupported layout, the transpiler logs a compatibility error and returns the incoming instructions unchanged. An unsuccessful initial installation is rolled back. This exception boundary also applies when another mod later triggers a Harmony rebuild.
-
-If the battle host cannot be resolved, the error is logged and that world-view synchronization is skipped. The fix does not register the window in an unrelated shared host. Repeated reports of the same failure are suppressed, and discovery can recover when the host becomes available or the UI root is replaced. Logging failures are also contained.
+Exceptions from initialization, patch installation, selection-command synchronization, and logging are contained within this mod instead of propagating to Anchor Chain, another mod's Harmony call, or the game's update loop.
 
 ## Building and verification
 
@@ -89,10 +64,8 @@ Use the Windows .NET SDK. The test runner targets .NET 10, and the plugin target
 .\build.ps1 -Test -InstallLocal
 ```
 
-`-Test` runs configuration, ownership, and game-method regression checks on .NET. It also invokes a separate process using the game's bundled Mono runtime to run those checks and verify Harmony patch installation and removal against the actual game method. The installed Harmony patching backend is intended for the game's Mono runtime. This separate process does not attach to a running game.
+`-Test` runs configuration, activation, and selection regression checks on .NET. It also invokes a separate process using the game's bundled Mono runtime to run those checks and verify Harmony patch installation and removal against the actual formation-command setter. The installed Harmony patching backend is intended for the game's Mono runtime. This separate process does not attach to a running game.
 
-The regression fixture reads the actual instructions of `SyncWorldViewWindow()` from the installed game DLL. It substitutes managed window and command boundaries, then compares the original method's registration in the pause-menu host with the patched method's registration in the battle host. The game's algorithm is not copied into the tests.
+Selection regression checks execute the installed game's formation command callback and the original camera no-op guard against managed rendering/selection boundaries. They reproduce the stale contact panel, verify reselection without camera movement, and cover ordinary switching, repeated selections, separate battles, command availability/events, and contained failures. The game's algorithm is not copied into the tests.
 
-Selection regression checks also execute the installed game's formation command callback and the original camera no-op guard against managed rendering/selection boundaries. They reproduce the stale contact panel, verify reselection without camera movement, and cover ordinary switching, repeated selections, separate battles, command availability/events, and contained failures.
-
-These checks do not initialize Unity or Noesis rendering. In-game verification should cover opening and closing the window both before and after using the Esc menu, repeated toggles without duplicate windows, and dedicated-monitor output. Formation selection should also be checked in-game after selecting an unidentified contact, both with the world-view window open and closed. Actual rendering, dedicated-monitor behavior, and in-game formation reselection remain unverified by the automated checks.
+These checks do not initialize Unity or Noesis rendering. In-game verification should cover formation selection after selecting an unidentified contact, both with the world-view window open and closed. Actual in-game UI behavior remains unverified by the automated checks.

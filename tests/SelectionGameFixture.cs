@@ -5,7 +5,6 @@ using System.Reflection;
 using System.Reflection.Emit;
 using HarmonyLib;
 using MebiusTosBugFixes.Fixes.Selection;
-using MebiusTosBugFixes.Fixes.WorldView;
 using SeaPower;
 using SeapowerUI.ViewModels;
 
@@ -59,7 +58,7 @@ internal static class SelectionGameFixture
         Label LabelFor(Label label)
         { if (!labels.TryGetValue(label, out var mapped)) labels[label] = mapped = generator.DefineLabel(); return mapped; }
         foreach (var i in original.Take(boundary)) Emit(generator, i, LabelFor);
-        foreach (Label label in WorldViewHostTranspiler.Labels(original[boundary])) generator.MarkLabel(LabelFor(label));
+        foreach (Label label in InstructionReader.Labels(original[boundary])) generator.MarkLabel(LabelFor(label));
         generator.Emit(OpCodes.Ldarg_0); generator.Emit(OpCodes.Ldarg_1);
         generator.Emit(OpCodes.Callvirt, typeof(Scene).GetMethod(nameof(Scene.Attach))!); generator.Emit(OpCodes.Ret);
         cameraGuard = (Action<Scene, Unit, bool, bool, bool>)guard.CreateDelegate(typeof(Action<Scene, Unit, bool, bool, bool>));
@@ -76,7 +75,7 @@ internal static class SelectionGameFixture
 
     private static void Emit(ILGenerator generator, CodeInstruction instruction, Func<Label, Label> labelFor)
     {
-        foreach (Label label in WorldViewHostTranspiler.Labels(instruction)) generator.MarkLabel(labelFor(label));
+        foreach (Label label in InstructionReader.Labels(instruction)) generator.MarkLabel(labelFor(label));
         var operand = instruction.operand;
         if (operand == null) generator.Emit(instruction.opcode);
         else if (operand is Label label) generator.Emit(instruction.opcode, labelFor(label));
