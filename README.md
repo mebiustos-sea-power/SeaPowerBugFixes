@@ -47,15 +47,17 @@ To reproduce the original issue with this fix disabled, select a friendly ship, 
 
 ## Disabling individual fixes
 
-Copy `fixes.ini.example` to `fixes.ini` inside the installed mod folder, then set a fix to `false` to disable it:
+All fixes are enabled by default and can be disabled independently. In the installed mod folder (the folder containing `MebiusTosBugFixes.dll`), copy `fixes.ini.example` to `fixes.ini` and set the fix you want to disable to `false`.
+
+For example, this configuration disables the world-view fix while keeping the formation-manager fix enabled:
 
 ```ini
 [Fixes]
 WorldViewWindowHost = false
-FormationUnitReselection = false
+FormationUnitReselection = true
 ```
 
-All fixes are enabled when `fixes.ini` is absent. A fix omitted from the file is also enabled. Restart the game after changing these settings.
+Set a fix back to `true` to re-enable it. If `fixes.ini` is absent, all fixes are enabled; omitted entries are also enabled. **Restart Sea Power after changing these settings.** Preserve your `fixes.ini` when updating the mod.
 
 Unknown fix IDs, duplicate entries, and invalid Boolean values are logged as configuration errors and stop initialization. The input file is not overwritten.
 
