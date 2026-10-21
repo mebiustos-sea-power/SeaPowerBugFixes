@@ -2,7 +2,7 @@
 
 A collection of bug fixes for Sea Power, loaded through Anchor Chain. Current version: **0.1.2**.
 
-[Source code](https://gitlab.com/mebiustos-sea-power/bug-fixes) · [Report an issue](https://gitlab.com/mebiustos-sea-power/bug-fixes/-/issues) · [Steam Workshop](https://steamcommunity.com/sharedfiles/filedetails/?id=3821735974)
+[Source code](https://github.com/mebiustos-sea-power/SeaPowerBugFixes) · [Report an issue](https://github.com/mebiustos-sea-power/SeaPowerBugFixes/issues) · [Steam Workshop](https://steamcommunity.com/sharedfiles/filedetails/?id=3821735974)
 
 ## Installation
 
