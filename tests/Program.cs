@@ -35,11 +35,15 @@ internal static class Program
         Console.WriteLine("Runtime: " + typeof(object).Assembly.Location);
         SettingsAndActivationTests.Run();
         SelectionTests.Run();
+        CeaseFireTests.Run();
+        ContextMenuInputTests.Run();
         if (game)
         {
             if (Type.GetType("Mono.Runtime") == null)
                 throw new PlatformNotSupportedException("The installed game's Harmony requires the game Mono runtime. Use tools/test-mono.ps1.");
             SelectionTests.InstallOnGameMono();
+            CeaseFireTests.InstallOnGameMono();
+            ContextMenuInputTests.InstallRootSetterOnGameMono();
         }
     }
 

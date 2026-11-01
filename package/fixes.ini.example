@@ -2,3 +2,5 @@
 # Missing entries are enabled. Changes take effect after restarting Sea Power.
 [Fixes]
 FormationUnitReselection = true
+CeaseFirePreservesWeaponsHold = true
+ContextMenuInputRecovery = true
